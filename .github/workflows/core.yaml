@@ -133,6 +133,7 @@ jobs:
         uses: "softprops/action-gh-release@v1"
         with:
           tag_name: "CI-APKs"
+          token: ${{ secrets.TOKEN }}
           files: |
             apks/*
           prerelease: true
