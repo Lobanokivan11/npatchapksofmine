@@ -118,7 +118,7 @@ jobs:
         with:
           tag: "CI-APKs"
           deleteOnlyFromDrafts: false
-          token: ${{ secrets.TOKEN }}
+          github_token: ${{ secrets.TOKEN }}
       - run: |
           cat > release.txt << EOF
           该CI构建于 $(TZ=Europe/Minsk date +"%Y.%m.%d %H:%M.%S")
