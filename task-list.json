@@ -2,19 +2,19 @@
   "include": [
     {
       "nickname": "WGTUNNEL",
-      "type": "direct",
+      "type": "apkmirror",
       "data": {
-        "source": "apkpure",
-        "value": "com.zaneschepke.wireguardautotunnel",
+        "org": "zane-schepke",
+        "repo": "wg-tunnel-f-droid-version",
         "version": "latest"
       }
     },
     {
-      "nickname": "Substratum",
-      "type": "direct",
+      "nickname": "SUBSTRATUM",
+      "type": "apkmirror",
       "data": {
-        "source": "apkpure",
-        "value": "projekt.substratum",
+        "org": "projekt",
+        "repo": "substratum-theme-engine",
         "version": "latest"
       }
     }
