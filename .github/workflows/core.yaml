@@ -127,6 +127,8 @@ jobs:
         uses: "richardsimko/update-tag@v1"
         with:
           tag_name: "CI-APKs"
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
       - name: "Upload Prerelease"
         uses: "softprops/action-gh-release@v1"
         with:
