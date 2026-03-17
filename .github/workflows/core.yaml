@@ -88,7 +88,7 @@ jobs:
           cp temp.apk $new_filename.apk
           make_lspatch_apk() {
             echo "::group:: 点我展开 当前步骤为通过 $1 打包"
-            java -jar patcher/$1.jar -v --manager --provider --injectdex --outputLog -l 2 -o --useMicroG "$1" $new_filename.apk
+            java -jar patcher/$1.jar -v --manager --provider --injectdex --outputLog -l 2 --useMicroG -o "$1" $new_filename.apk
             (
               cd $1
               mv -v $(ls) $new_filename-$1.apk
