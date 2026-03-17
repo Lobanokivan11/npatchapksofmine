@@ -1,0 +1,50 @@
+name: 添加应用
+description: 提交新应用申请
+title: "[添加应用]: "
+labels: ["app-submission"]
+assignees: ["github-actions[bot]"]
+body:
+  - type: input
+    id: app_name
+    attributes:
+      label: 程序名
+      placeholder: 样例应用
+      description: |
+        例如 支付宝 填写 支付宝
+  - type: input
+    id: nickname
+    attributes:
+      label: 程序别名
+      placeholder: ExampleApp
+      description: |
+        主要填写程序的英文名 <br>
+        例如 支付宝 填写 Alipay
+    validations:
+      required: true
+  - type: input
+    id: package_id
+    attributes:
+      label: 应用包名
+      placeholder: com.example.app
+    validations:
+      required: true
+  - type: dropdown
+    id: source
+    attributes:
+      label: 应用商店来源
+      options:
+        - vivo
+        - apkpure
+        - url
+    validations:
+      required: true
+  - type: input
+    id: value
+    attributes:
+      label: 来源附加参数
+      description: |
+        vivo 填写 app_id (纯数字) <br>
+        apkpure 填写 应用包名 (与上边的一致) <br>
+        url 填写 https开头的链接
+    validations:
+      required: true

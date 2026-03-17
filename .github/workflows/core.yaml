@@ -1,0 +1,140 @@
+name: "Core"
+on:
+  workflow_call:
+    inputs:
+      tasklist-filepath:
+        required: false
+        type: "string"
+      is-release:
+        required: true
+        type: "boolean"
+        default: false
+
+jobs:
+  job-init:
+    name: "Init"
+    runs-on: "ubuntu-latest"
+    outputs:
+      result: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v6"
+      - id: "set-matrix"
+        run: |
+          echo "matrix="`cat ${{ inputs.tasklist-filepath }} `"">> $GITHUB_OUTPUT
+
+  job-patch:
+    needs: "job-init"
+    runs-on: "ubuntu-latest"
+    continue-on-error: true
+    strategy:
+      matrix: ${{ fromJSON(needs.job-init.outputs.result) }}
+    name: "App Repackage / ${{ matrix.nickname }}"
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v6"
+      - name: "Setup JDK"
+        uses: "actions/setup-java@v5"
+        with:
+          java-version: "21"
+          #cache: "gradle"
+          java-package: "jdk"
+          distribution: "liberica"
+      - name: "Download Apk (from APKMirror)"
+        if: ${{ matrix.type == 'apkmirror' }}
+        uses: "Kingsman44/gh-apkmirror-dl@v2.0"
+        with:
+          org: '${{ matrix.data.org }}'
+          repo: '${{ matrix.data.repo }}'
+          version: '${{ matrix.data.version }}'
+          filename: 'temp.apk'
+      - name: "Download Apk (from WanDouJia)"
+        if: ${{ matrix.type == 'wandoujia' }}
+        run: |
+          # 点我展开
+          if [[ ${{matrix.data.history_id_num == '' }} ]]; then
+            url=`curl -I 'https://www.wandoujia.com/apps/${{matrix.data.app_id_num}}/download/dot?ch=detail_normal_dl' \
+              -H 'authority: www.wandoujia.com' \
+              -H 'referer: https://www.wandoujia.com/apps/${{matrix.data.app_id_num}}' \
+              | grep "location:" |  sed 's#location: ##'`
+          else
+            url=`curl -s "https://www.wandoujia.com/apps/${{matrix.data.app_id_num}}/history_v${{matrix.data.history_id_num}}" \
+              | grep "data-href" | head -n1 | awk '$1=$1'|  sed -e 's/.*href="\(.*\)\" .*/\1/'`
+          fi
+          wget -O "temp.apk" $url
+      - name: "Download Apk (from Direct)"
+        if: ${{ matrix.type == 'direct' }}
+        run: |
+          # 点我展开
+          echo "文件来源 ${{ matrix.data.source }}"
+          case "${{ matrix.data.source }}" in
+            vivo) dl_url="https://appstore.vivo.com.cn/appinfo/downloadApkFile-h5appstore?id=${{ matrix.data.value }}" ;;
+            apkpure) dl_url="https://d.apkpure.com/b/APK/${{ matrix.data.value }}?version=${{ matrix.data.version }}" ;;
+            *) dl_url="${{ matrix.data.value }}" ;;
+          esac
+          aria2c --out "temp.apk" $dl_url
+      - name: "Get Apk Info"
+        id: "apk-info"
+        uses: "8Mi-Tech/get-apk-info-action@master"
+        with:
+          apkPath: "temp.apk"
+        #版本号：${{ steps.apk-info.outputs.versionNum }}
+      - name: "Install Artifact Handle"
+        uses: "lhotari/gh-actions-artifact-client@v2"
+      - name: "Patch LSPatch Lib to Apk (include fork)"
+        run: |
+          # 点我展开
+          new_filename="${{ matrix.nickname }}-${{ steps.apk-info.outputs.versionNum }}"
+          cp temp.apk $new_filename.apk
+          make_lspatch_apk() {
+            echo "::group:: 点我展开 当前步骤为通过 $1 打包"
+            java -jar patcher/$1.jar -v --manager -l 2 -o "$1" $new_filename.apk
+            (
+              cd $1
+              mv -v $(ls) $new_filename-$1.apk
+              zip -q - "$(ls)" | gh-actions-artifact-client.js upload "$(ls)"
+            )
+            echo "::endgroup::"
+          }
+          make_lspatch_apk lspatch
+          make_lspatch_apk jm-lspatch
+          make_lspatch_apk npatch
+
+  job_release:
+    needs: "job-patch"
+    if: ${{ inputs.is-release }}
+    name: "Release All"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Download all APKs"
+        uses: "actions/download-artifact@v8"
+        with:
+          path: "apks/"
+          merge-multiple: true
+      - name: "List folder APKs files"
+        run: |
+          # 点击展开
+          ls -R apks
+      - name: "Delete old APKs"
+        uses: "8Mi-Tech/delete-release-assets-action@main"
+        with:
+          tag: "CI-APKs"
+          deleteOnlyFromDrafts: false
+      - run: |
+          cat > release.txt << EOF
+          该CI构建于 $(TZ=Asia/Shanghai date +"%Y.%m.%d %H:%M.%S")
+          管理器已展示在 readme.md 内，请自行下载对应的管理器
+          EOF
+      - name: "Tag Repo"
+        uses: "richardsimko/update-tag@v1"
+        with:
+          tag_name: "CI-APKs"
+      - name: "Upload Prerelease"
+        uses: "softprops/action-gh-release@v1"
+        with:
+          tag_name: "CI-APKs"
+          files: |
+            apks/*
+          prerelease: true
+          generate_release_notes: true
+          body_path: "release.txt"
