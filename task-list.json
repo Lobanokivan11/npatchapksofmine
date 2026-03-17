@@ -10,12 +10,12 @@
       }
     },
     {
-      "nickname": "SUBSTRATUM",
+      "nickname": "PACMAN256",
       "type": "apkmirror",
       "data": {
-        "org": "projekt",
-        "repo": "substratum-theme-engine",
-        "version": "1022"
+        "org": "bandai-namco-entertainment-europe",
+        "repo": "pac-man-256",
+        "version": "2.1.1"
       }
     }
   ]
