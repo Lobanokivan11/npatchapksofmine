@@ -10,6 +10,15 @@
       }
     },
     {
+      "nickname": "SESAME",
+      "type": "apkmirror",
+      "data": {
+        "org": "sesame-crew",
+        "repo": "sesame-shortcuts",
+        "version": "3.7.0-beta2"
+      }
+    },
+    {
       "nickname": "PACMAN256",
       "type": "apkmirror",
       "data": {
