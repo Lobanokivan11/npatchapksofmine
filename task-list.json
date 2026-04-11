@@ -19,6 +19,15 @@
       }
     },
     {
+      "nickname": "GPM",
+      "type": "apkmirror",
+      "data": {
+        "org": "google-inc",
+        "repo": "google-play-music",
+        "version": "8.28.8916-1.V"
+      }
+    },
+    {
       "nickname": "PACMAN256",
       "type": "apkmirror",
       "data": {
